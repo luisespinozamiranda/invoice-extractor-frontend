@@ -36,20 +36,44 @@ export class InvoiceList implements OnInit {
     this.loading = true;
     this.error = null;
 
+    console.log('Starting to load invoices...');
+
     this.invoiceService.getAllInvoices().subscribe({
       next: (invoices) => {
+        console.log('Invoices loaded successfully:', invoices);
         this.invoices = invoices;
         this.loading = false;
+        console.log('State after loading:', {
+          loading: this.loading,
+          error: this.error,
+          invoiceCount: this.invoices.length
+        });
       },
       error: (error) => {
+        console.error('Error loading invoices:', error);
         this.error = 'Failed to load invoices. Please try again.';
         this.loading = false;
-        console.error('Error loading invoices:', error);
+      },
+      complete: () => {
+        console.log('Observable completed');
       }
     });
   }
 
   goToUpload(): void {
     this.router.navigate(['/upload']);
+  }
+
+  formatDate(date: string | null): string {
+    if (!date) return 'N/A';
+    try {
+      return new Date(date).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
+    } catch {
+      return 'Invalid date';
+    }
   }
 }
