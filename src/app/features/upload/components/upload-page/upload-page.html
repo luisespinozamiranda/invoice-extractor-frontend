@@ -1,0 +1,60 @@
+<div class="upload-page-container">
+  <div class="page-header">
+    <h1>Invoice Extraction</h1>
+    <p class="subtitle">Upload an invoice file to extract data using OCR and AI</p>
+  </div>
+
+  <!-- File Drop Zone (only shown when not extracting and no result) -->
+  <div *ngIf="!isExtracting && !extractedInvoice">
+    <app-file-drop-zone (fileSelected)="onFileSelected($event)"></app-file-drop-zone>
+  </div>
+
+  <!-- Extraction Progress (shown during extraction) -->
+  <div *ngIf="isExtracting">
+    <app-extraction-progress></app-extraction-progress>
+  </div>
+
+  <!-- Extraction Result (shown after successful extraction) -->
+  <div *ngIf="extractedInvoice && !isExtracting" class="extraction-result">
+    <mat-card class="result-card">
+      <mat-card-header>
+        <mat-card-title>Extraction Successful!</mat-card-title>
+        <mat-card-subtitle>Invoice data has been extracted and saved</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="invoice-summary">
+          <div class="summary-row">
+            <span class="label">Invoice Number:</span>
+            <span class="value">{{ extractedInvoice.invoice.invoice_number }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Amount:</span>
+            <span class="value amount">{{ extractedInvoice.invoice.currency }} {{ extractedInvoice.invoice.invoice_amount }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Client:</span>
+            <span class="value">{{ extractedInvoice.invoice.client_name }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Issue Date:</span>
+            <span class="value">{{ extractedInvoice.invoice.issue_date | date:'mediumDate' }}</span>
+          </div>
+          <div class="summary-row">
+            <span class="label">Confidence:</span>
+            <span class="value confidence">{{ (extractedInvoice.extraction_metadata.confidence_score * 100).toFixed(1) }}%</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="viewInvoiceList()">
+          View All Invoices
+        </button>
+        <button mat-raised-button (click)="resetUpload()">
+          Upload Another
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

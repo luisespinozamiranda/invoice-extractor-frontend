@@ -1,0 +1,211 @@
+.drop-zone {
+  border: 3px dashed #ccc;
+  border-radius: 12px;
+  padding: 48px 24px;
+  text-align: center;
+  background-color: #fafafa;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  position: relative;
+  min-height: 300px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: #3f51b5;
+    background-color: #f5f7fa;
+  }
+
+  &.dragging {
+    border-color: #3f51b5;
+    background-color: #e8eaf6;
+    transform: scale(1.02);
+
+    .upload-icon {
+      transform: scale(1.2);
+      color: #3f51b5;
+    }
+  }
+
+  &.has-file {
+    border-color: #4caf50;
+    background-color: #e8f5e9;
+  }
+
+  &.has-error {
+    border-color: #f44336;
+    background-color: #ffebee;
+  }
+
+  .upload-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: #9e9e9e;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+  }
+
+  .upload-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+
+    h3 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .or-text {
+      margin: 0;
+      font-size: 14px;
+      color: #666;
+    }
+
+    button {
+      mat-icon {
+        margin-right: 8px;
+      }
+    }
+
+    .file-info {
+      margin: 8px 0 0 0;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.6;
+    }
+  }
+
+  .file-selected {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    animation: slideIn 0.3s ease;
+
+    .file-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+      color: #4caf50;
+      flex-shrink: 0;
+    }
+
+    .file-details {
+      flex: 1;
+      text-align: left;
+      min-width: 0;
+
+      .file-name {
+        margin: 0 0 4px 0;
+        font-size: 16px;
+        font-weight: 500;
+        color: #333;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .file-size {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+      }
+    }
+
+    .clear-button {
+      flex-shrink: 0;
+    }
+  }
+
+  .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    animation: shake 0.5s ease;
+
+    .error-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #f44336;
+    }
+
+    .error-text {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 500;
+      color: #c62828;
+      text-align: center;
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .drop-zone {
+    padding: 32px 16px;
+    min-height: 250px;
+
+    .upload-icon {
+      font-size: 48px;
+      width: 48px;
+      height: 48px;
+    }
+
+    .upload-prompt {
+      h3 {
+        font-size: 18px;
+      }
+
+      .file-info {
+        font-size: 12px;
+      }
+    }
+
+    .file-selected {
+      max-width: 100%;
+
+      .file-icon {
+        font-size: 36px;
+        width: 36px;
+        height: 36px;
+      }
+    }
+  }
+}
+
+// Animations
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shake {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  10%, 30%, 50%, 70%, 90% {
+    transform: translateX(-5px);
+  }
+  20%, 40%, 60%, 80% {
+    transform: translateX(5px);
+  }
+}

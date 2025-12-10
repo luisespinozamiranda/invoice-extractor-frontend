@@ -1,0 +1,66 @@
+<mat-card *ngIf="progress && progress.phase !== UploadPhase.IDLE" class="progress-card">
+  <mat-card-content>
+    <!-- Progress message and percentage -->
+    <div class="progress-header">
+      <h3 class="progress-message">{{ progress.message }}</h3>
+      <span class="progress-percentage">{{ progress.percentage }}%</span>
+    </div>
+
+    <!-- Progress bar -->
+    <mat-progress-bar
+      mode="determinate"
+      [value]="progress.percentage"
+      [class.error]="progress.phase === UploadPhase.ERROR"
+      [class.complete]="progress.phase === UploadPhase.COMPLETE">
+    </mat-progress-bar>
+
+    <!-- Phase indicators -->
+    <div class="phase-indicators">
+      <div
+        class="phase-indicator"
+        [ngClass]="getPhaseClass(UploadPhase.UPLOADING, progress.phase)">
+        <mat-icon>{{ getPhaseIcon(UploadPhase.UPLOADING) }}</mat-icon>
+        <span class="phase-label">Upload</span>
+      </div>
+
+      <div
+        class="phase-indicator"
+        [ngClass]="getPhaseClass(UploadPhase.OCR_PROCESSING, progress.phase)">
+        <mat-icon>{{ getPhaseIcon(UploadPhase.OCR_PROCESSING) }}</mat-icon>
+        <span class="phase-label">OCR</span>
+      </div>
+
+      <div
+        class="phase-indicator"
+        [ngClass]="getPhaseClass(UploadPhase.LLM_PROCESSING, progress.phase)">
+        <mat-icon>{{ getPhaseIcon(UploadPhase.LLM_PROCESSING) }}</mat-icon>
+        <span class="phase-label">AI Analysis</span>
+      </div>
+
+      <div
+        class="phase-indicator"
+        [ngClass]="getPhaseClass(UploadPhase.SAVING, progress.phase)">
+        <mat-icon>{{ getPhaseIcon(UploadPhase.SAVING) }}</mat-icon>
+        <span class="phase-label">Save</span>
+      </div>
+    </div>
+
+    <!-- Time remaining -->
+    <div *ngIf="progress.estimatedTimeRemaining && progress.estimatedTimeRemaining > 0" class="time-remaining">
+      <mat-icon>schedule</mat-icon>
+      <span>Estimated time remaining: {{ formatTime(progress.estimatedTimeRemaining) }}</span>
+    </div>
+
+    <!-- Success message -->
+    <div *ngIf="progress.phase === UploadPhase.COMPLETE" class="success-message">
+      <mat-icon>check_circle</mat-icon>
+      <span>Extraction completed successfully!</span>
+    </div>
+
+    <!-- Error message -->
+    <div *ngIf="progress.phase === UploadPhase.ERROR" class="error-message">
+      <mat-icon>error</mat-icon>
+      <span>{{ progress.message }}</span>
+    </div>
+  </mat-card-content>
+</mat-card>

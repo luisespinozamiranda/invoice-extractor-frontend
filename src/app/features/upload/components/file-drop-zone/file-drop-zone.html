@@ -1,0 +1,53 @@
+<div
+  class="drop-zone"
+  [class.dragging]="isDragging"
+  [class.has-file]="selectedFile"
+  [class.has-error]="errorMessage"
+  (dragover)="onDragOver($event)"
+  (dragleave)="onDragLeave($event)"
+  (drop)="onDrop($event)">
+
+  <!-- Upload Icon -->
+  <mat-icon class="upload-icon">cloud_upload</mat-icon>
+
+  <!-- No file selected state -->
+  <div *ngIf="!selectedFile && !errorMessage" class="upload-prompt">
+    <h3>Drag and drop invoice file here</h3>
+    <p class="or-text">or</p>
+    <input
+      type="file"
+      #fileInput
+      (change)="onFileSelected($event)"
+      accept=".pdf,.png,.jpg,.jpeg"
+      hidden>
+    <button mat-raised-button color="primary" (click)="fileInput.click()">
+      <mat-icon>folder_open</mat-icon>
+      Browse Files
+    </button>
+    <p class="file-info">
+      Supported formats: PDF, PNG, JPG, JPEG<br>
+      Maximum size: 10 MB
+    </p>
+  </div>
+
+  <!-- File selected state -->
+  <div *ngIf="selectedFile && !errorMessage" class="file-selected">
+    <mat-icon class="file-icon">description</mat-icon>
+    <div class="file-details">
+      <h4 class="file-name">{{ selectedFile.name }}</h4>
+      <p class="file-size">{{ getFileSize(selectedFile.size) }}</p>
+    </div>
+    <button mat-icon-button color="warn" (click)="clearFile()" class="clear-button">
+      <mat-icon>close</mat-icon>
+    </button>
+  </div>
+
+  <!-- Error state -->
+  <div *ngIf="errorMessage" class="error-state">
+    <mat-icon class="error-icon">error</mat-icon>
+    <p class="error-text">{{ errorMessage }}</p>
+    <button mat-raised-button color="accent" (click)="clearFile()">
+      Try Again
+    </button>
+  </div>
+</div>
