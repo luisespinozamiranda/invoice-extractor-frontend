@@ -1,6 +1,6 @@
 <div class="invoice-list-container">
   <div class="page-header">
-    <h1>Invoices</h1>
+    <h1>Invoices ({{ totalItems }})</h1>
     <button mat-raised-button color="primary" (click)="goToUpload()">
       <mat-icon>add</mat-icon>
       Upload New Invoice
@@ -34,9 +34,79 @@
     </button>
   </div>
 
-  <!-- Invoice Grid -->
-  <div *ngIf="!loading && !error && invoices.length > 0" class="invoice-grid">
-    <mat-card *ngFor="let invoice of invoices" class="invoice-card">
+  <!-- Filters and Controls -->
+  <div *ngIf="!loading && !error && invoices.length > 0" class="filters-section">
+    <div class="filters-row">
+      <!-- Search -->
+      <mat-form-field appearance="outline" class="search-field">
+        <mat-label>Search</mat-label>
+        <input matInput
+               [(ngModel)]="searchTerm"
+               (ngModelChange)="onSearchChange()"
+               placeholder="Invoice number or client name">
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <!-- Status Filter -->
+      <mat-form-field appearance="outline" class="status-field">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()">
+          <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+            {{ status.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Sort -->
+      <mat-form-field appearance="outline" class="sort-field">
+        <mat-label>Sort By</mat-label>
+        <mat-select [(ngModel)]="sortField" (ngModelChange)="onSortChange()">
+          <mat-option value="created_at">Date Created</mat-option>
+          <mat-option value="invoice_number">Invoice Number</mat-option>
+          <mat-option value="client_name">Client Name</mat-option>
+          <mat-option value="invoice_amount">Amount</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Sort Direction -->
+      <button mat-icon-button
+              (click)="toggleSortDirection()"
+              [matTooltip]="sortDirection === 'asc' ? 'Ascending' : 'Descending'"
+              class="sort-direction-btn">
+        <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+      </button>
+
+      <div class="spacer"></div>
+
+      <!-- View Mode Toggle -->
+      <mat-button-toggle-group [(ngModel)]="viewMode" class="view-toggle">
+        <mat-button-toggle value="grid">
+          <mat-icon>grid_view</mat-icon>
+        </mat-button-toggle>
+        <mat-button-toggle value="table">
+          <mat-icon>view_list</mat-icon>
+        </mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
+    <!-- Results Info -->
+    <div class="results-info" *ngIf="filteredInvoices.length !== invoices.length">
+      Showing {{ filteredInvoices.length }} of {{ invoices.length }} invoices
+    </div>
+  </div>
+
+  <!-- No Results -->
+  <div *ngIf="!loading && !error && filteredInvoices.length === 0 && invoices.length > 0" class="no-results">
+    <mat-icon>filter_list_off</mat-icon>
+    <p>No invoices match your filters</p>
+    <button mat-button color="primary" (click)="searchTerm = ''; selectedStatus = 'all'; onSearchChange()">
+      Clear Filters
+    </button>
+  </div>
+
+  <!-- Grid View -->
+  <div *ngIf="!loading && !error && paginatedInvoices.length > 0 && viewMode === 'grid'" class="invoice-grid">
+    <mat-card *ngFor="let invoice of paginatedInvoices" class="invoice-card">
       <mat-card-header>
         <mat-card-title>
           <mat-icon class="invoice-icon">description</mat-icon>
@@ -84,15 +154,71 @@
       </mat-card-content>
 
       <mat-card-actions>
-        <button mat-button color="primary">
+        <button mat-button color="primary" (click)="viewInvoice(invoice.invoice_key!)">
           <mat-icon>visibility</mat-icon>
           View
         </button>
-        <button mat-button>
+        <button mat-button (click)="editInvoice(invoice.invoice_key!)">
           <mat-icon>edit</mat-icon>
           Edit
+        </button>
+        <button mat-button color="warn" (click)="deleteInvoice(invoice)">
+          <mat-icon>delete</mat-icon>
+          Delete
         </button>
       </mat-card-actions>
     </mat-card>
   </div>
+
+  <!-- Table View -->
+  <div *ngIf="!loading && !error && paginatedInvoices.length > 0 && viewMode === 'table'" class="invoice-table-container">
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Invoice #</th>
+          <th>Client</th>
+          <th>Amount</th>
+          <th>Issue Date</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let invoice of paginatedInvoices">
+          <td class="invoice-number">{{ invoice.invoice_number }}</td>
+          <td>{{ invoice.client_name }}</td>
+          <td class="amount">{{ invoice.currency }} {{ invoice.invoice_amount | number:'1.2-2' }}</td>
+          <td>{{ formatDate(invoice.issue_date) }}</td>
+          <td>{{ formatDate(invoice.due_date) }}</td>
+          <td>
+            <span class="status-badge" [class]="'status-' + invoice.status.toLowerCase()">
+              {{ invoice.status }}
+            </span>
+          </td>
+          <td class="actions">
+            <button mat-icon-button color="primary" (click)="viewInvoice(invoice.invoice_key!)" matTooltip="View">
+              <mat-icon>visibility</mat-icon>
+            </button>
+            <button mat-icon-button (click)="editInvoice(invoice.invoice_key!)" matTooltip="Edit">
+              <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="warn" (click)="deleteInvoice(invoice)" matTooltip="Delete">
+              <mat-icon>delete</mat-icon>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginator -->
+  <mat-paginator *ngIf="!loading && !error && filteredInvoices.length > 0"
+                 [length]="totalItems"
+                 [pageSize]="pageSize"
+                 [pageSizeOptions]="pageSizeOptions"
+                 [pageIndex]="pageIndex"
+                 (page)="onPageChange($event)"
+                 showFirstLastButtons>
+  </mat-paginator>
 </div>
