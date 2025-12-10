@@ -42,7 +42,7 @@
           <mat-icon class="invoice-icon">description</mat-icon>
           {{ invoice.invoice_number }}
         </mat-card-title>
-        <mat-card-subtitle>{{ invoice.issue_date | date:'mediumDate' }}</mat-card-subtitle>
+        <mat-card-subtitle>{{ invoice.issue_date ? (invoice.issue_date | date:'mediumDate') : 'No date' }}</mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
@@ -67,7 +67,7 @@
             <mat-icon class="detail-icon">event</mat-icon>
             <div class="detail-content">
               <span class="detail-label">Due Date</span>
-              <span class="detail-value">{{ invoice.due_date | date:'mediumDate' }}</span>
+              <span class="detail-value">{{ invoice.due_date ? (invoice.due_date | date:'mediumDate') : 'N/A' }}</span>
             </div>
           </div>
 
