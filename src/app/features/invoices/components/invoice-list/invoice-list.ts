@@ -77,14 +77,25 @@ export class InvoiceList implements OnInit {
     this.loading = true;
     this.error = null;
 
+    console.log('[InvoiceList] Starting to load invoices...');
+
     this.invoiceService.getAllInvoices().subscribe({
       next: (invoices) => {
+        console.log('[InvoiceList] Invoices received:', invoices.length, 'items');
         this.invoices = invoices;
         this.applyFilters();
         this.loading = false;
+        console.log('[InvoiceList] After applyFilters:', {
+          loading: this.loading,
+          totalInvoices: this.invoices.length,
+          filteredInvoices: this.filteredInvoices.length,
+          paginatedInvoices: this.paginatedInvoices.length,
+          pageSize: this.pageSize,
+          pageIndex: this.pageIndex
+        });
       },
       error: (error) => {
-        console.error('Error loading invoices:', error);
+        console.error('[InvoiceList] Error loading invoices:', error);
         this.error = 'Failed to load invoices. Please try again.';
         this.loading = false;
       }

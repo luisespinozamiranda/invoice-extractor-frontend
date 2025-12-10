@@ -105,7 +105,7 @@
   </div>
 
   <!-- Grid View -->
-  <div *ngIf="!loading && !error && paginatedInvoices.length > 0 && viewMode === 'grid'" class="invoice-grid">
+  <div *ngIf="!loading && !error && filteredInvoices.length > 0 && viewMode === 'grid'" class="invoice-grid">
     <mat-card *ngFor="let invoice of paginatedInvoices" class="invoice-card">
       <mat-card-header>
         <mat-card-title>
@@ -171,7 +171,7 @@
   </div>
 
   <!-- Table View -->
-  <div *ngIf="!loading && !error && paginatedInvoices.length > 0 && viewMode === 'table'" class="invoice-table-container">
+  <div *ngIf="!loading && !error && filteredInvoices.length > 0 && viewMode === 'table'" class="invoice-table-container">
     <table class="invoice-table">
       <thead>
         <tr>
