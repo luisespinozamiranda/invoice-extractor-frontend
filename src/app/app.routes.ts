@@ -13,7 +13,7 @@ export const routes: Routes = [
   },
   {
     path: 'invoices',
-    loadComponent: () => import('./features/upload/components/upload-page/upload-page').then(m => m.UploadPage),
+    loadComponent: () => import('./features/invoices/components/invoice-list/invoice-list').then(m => m.InvoiceList),
     title: 'Invoices'
   },
   {

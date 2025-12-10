@@ -8,22 +8,67 @@
 .app-header {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 32px 24px;
-  text-align: center;
+  padding: 24px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 
-  h1 {
-    margin: 0;
-    font-size: 32px;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+  .header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
   }
 
-  .subtitle {
-    margin: 8px 0 0 0;
-    font-size: 14px;
-    opacity: 0.9;
-    font-weight: 300;
+  .header-title {
+    h1 {
+      margin: 0;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    .subtitle {
+      margin: 4px 0 0 0;
+      font-size: 13px;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+  }
+
+  .header-nav {
+    display: flex;
+    gap: 8px;
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      color: white;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      font-weight: 500;
+      font-size: 14px;
+
+      .nav-icon {
+        font-family: 'Material Icons';
+        font-size: 20px;
+      }
+
+      &:hover {
+        background: rgba(255, 255, 255, 0.2);
+        transform: translateY(-2px);
+      }
+
+      &.active {
+        background: rgba(255, 255, 255, 0.3);
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+      }
+    }
   }
 }
 
@@ -50,14 +95,29 @@
 // Responsive
 @media (max-width: 768px) {
   .app-header {
-    padding: 24px 16px;
+    padding: 16px;
 
-    h1 {
-      font-size: 24px;
+    .header-content {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
     }
 
-    .subtitle {
+    .header-title h1 {
+      font-size: 22px;
+    }
+
+    .header-title .subtitle {
       font-size: 12px;
+    }
+
+    .header-nav {
+      width: 100%;
+
+      .nav-link {
+        flex: 1;
+        justify-content: center;
+      }
     }
   }
 

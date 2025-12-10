@@ -1,4 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:8080/invoice-extractor-service'
+  apiUrl: 'https://invoice-extractor-service.onrender.com/invoice-extractor-service'
 };
