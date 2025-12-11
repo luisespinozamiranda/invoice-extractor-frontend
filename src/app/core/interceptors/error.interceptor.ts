@@ -4,6 +4,8 @@ import { catchError, throwError } from 'rxjs';
 import { getUserFriendlyMessage } from '../constants/error-codes';
 
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
+  console.log('[ErrorInterceptor] Request:', req.url);
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage: string;
@@ -18,7 +20,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       // Log error for debugging
-      console.error('HTTP Error:', {
+      console.error('[ErrorInterceptor] HTTP Error:', {
         status: error.status,
         statusText: error.statusText,
         errorCode: error.error?.errorCode,

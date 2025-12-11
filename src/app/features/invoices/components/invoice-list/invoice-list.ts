@@ -1,8 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -10,7 +9,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatSelectModule } from '@angular/material/select';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialogModule, MatDialog, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -19,10 +17,10 @@ import { Invoice } from '../../../../core/models/invoice.model';
 
 @Component({
   selector: 'app-invoice-list',
+  standalone: true,
   imports: [
     CommonModule,
     FormsModule,
-    MatCardModule,
     MatButtonModule,
     MatIconModule,
     MatProgressSpinnerModule,
@@ -30,7 +28,6 @@ import { Invoice } from '../../../../core/models/invoice.model';
     MatInputModule,
     MatPaginatorModule,
     MatSelectModule,
-    MatButtonToggleModule,
     MatTooltipModule,
     MatDialogModule
   ],
@@ -42,6 +39,8 @@ export class InvoiceList implements OnInit {
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
+  private cdr = inject(ChangeDetectorRef);
+  private ngZone = inject(NgZone);
 
   // Data
   invoices: Invoice[] = [];
@@ -57,13 +56,10 @@ export class InvoiceList implements OnInit {
   selectedStatus = 'all';
 
   // Pagination
-  pageSize = 9;
+  pageSize = 10;
   pageIndex = 0;
   totalItems = 0;
-  pageSizeOptions = [9, 18, 27, 50];
-
-  // View mode
-  viewMode: 'grid' | 'table' = 'grid';
+  pageSizeOptions = [10, 25, 50, 100];
 
   // Sort
   sortField: 'invoice_number' | 'client_name' | 'invoice_amount' | 'created_at' = 'created_at';
@@ -77,32 +73,42 @@ export class InvoiceList implements OnInit {
     this.loading = true;
     this.error = null;
 
-    console.log('[InvoiceList] Starting to load invoices...');
-
+    // Call the real API
     this.invoiceService.getAllInvoices().subscribe({
       next: (invoices) => {
-        console.log('[InvoiceList] Invoices received:', invoices.length, 'items');
-        this.invoices = invoices;
-        this.applyFilters();
-        this.loading = false;
-        console.log('[InvoiceList] After applyFilters:', {
-          loading: this.loading,
-          totalInvoices: this.invoices.length,
-          filteredInvoices: this.filteredInvoices.length,
-          paginatedInvoices: this.paginatedInvoices.length,
-          pageSize: this.pageSize,
-          pageIndex: this.pageIndex
+        // Use ngZone.run() to ensure Angular detects changes
+        this.ngZone.run(() => {
+          this.invoices = invoices || [];
+          this.applyFilters();
+          this.loading = false;
+          console.log('✅ Data loaded successfully:', this.totalItems, 'invoices');
         });
       },
       error: (error) => {
-        console.error('[InvoiceList] Error loading invoices:', error);
-        this.error = 'Failed to load invoices. Please try again.';
-        this.loading = false;
+        this.ngZone.run(() => {
+          console.error('❌ Error loading invoices:', error);
+
+          if (error.message?.includes('timeout') || error.message?.includes('sleeping')) {
+            this.error = '⏱️ Server is taking too long. Backend might be sleeping (Render free tier). Please wait and try again.';
+          } else if (error.status === 0) {
+            this.error = '🔌 Cannot connect to server.';
+          } else if (error.status === 404) {
+            this.error = '❌ API endpoint not found.';
+          } else if (error.status >= 500) {
+            this.error = '🔧 Server error. Please try again.';
+          } else {
+            this.error = 'Failed to load invoices. Please try again.';
+          }
+
+          this.loading = false;
+        });
       }
     });
   }
 
   applyFilters(): void {
+    console.log('[applyFilters] Starting with invoices:', this.invoices.length);
+
     let filtered = [...this.invoices];
 
     // Apply search filter
@@ -112,11 +118,13 @@ export class InvoiceList implements OnInit {
         inv.invoice_number.toLowerCase().includes(term) ||
         inv.client_name.toLowerCase().includes(term)
       );
+      console.log('[applyFilters] After search filter:', filtered.length);
     }
 
     // Apply status filter
     if (this.selectedStatus !== 'all') {
       filtered = filtered.filter(inv => inv.status === this.selectedStatus);
+      console.log('[applyFilters] After status filter:', filtered.length);
     }
 
     // Apply sorting
@@ -140,6 +148,14 @@ export class InvoiceList implements OnInit {
 
     this.filteredInvoices = filtered;
     this.totalItems = filtered.length;
+
+    console.log('[applyFilters] Final results:', {
+      filteredInvoices: this.filteredInvoices.length,
+      totalItems: this.totalItems,
+      pageSize: this.pageSize,
+      pageIndex: this.pageIndex
+    });
+
     this.updatePagination();
   }
 
@@ -147,6 +163,16 @@ export class InvoiceList implements OnInit {
     const startIndex = this.pageIndex * this.pageSize;
     const endIndex = startIndex + this.pageSize;
     this.paginatedInvoices = this.filteredInvoices.slice(startIndex, endIndex);
+
+    console.log('[updatePagination]', {
+      startIndex,
+      endIndex,
+      paginatedInvoices: this.paginatedInvoices.length,
+      firstInvoice: this.paginatedInvoices[0],
+      pageIndex: this.pageIndex,
+      pageSize: this.pageSize,
+      totalItems: this.totalItems
+    });
   }
 
   onSearchChange(): void {
@@ -192,12 +218,10 @@ export class InvoiceList implements OnInit {
   }
 
   viewInvoice(invoiceKey: string): void {
-    // TODO: Navigate to invoice detail page
     this.router.navigate(['/invoices', invoiceKey]);
   }
 
   editInvoice(invoiceKey: string): void {
-    // TODO: Navigate to invoice edit page
     this.router.navigate(['/invoices', invoiceKey, 'edit']);
   }
 
