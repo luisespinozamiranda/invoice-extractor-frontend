@@ -1,5 +1,4 @@
 <div class="invoice-list-container">
-  <!-- Page Header -->
   <div class="page-header">
     <h1>Invoices ({{ totalItems }})</h1>
     <button mat-raised-button color="primary" (click)="goToUpload()">
@@ -8,146 +7,31 @@
     </button>
   </div>
 
-  <!-- Filters Section -->
-  <div class="filters-section" *ngIf="!loading || invoices.length > 0">
-    <div class="filters-row">
-      <mat-form-field class="search-field" appearance="outline">
-        <mat-label>Search invoices</mat-label>
-        <input matInput [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()" placeholder="Invoice number or client name" [disabled]="loading">
-        <mat-icon matPrefix>search</mat-icon>
-      </mat-form-field>
+  <p *ngIf="loading">Loading invoices...</p>
+  <p *ngIf="error" style="color: red;">{{ error }}</p>
 
-      <mat-form-field class="status-field" appearance="outline">
-        <mat-label>Status</mat-label>
-        <mat-select [(ngModel)]="selectedStatus" (ngModelChange)="onStatusChange()" [disabled]="loading">
-          <mat-option *ngFor="let option of statusOptions" [value]="option.value">
-            {{ option.label }}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
+  <div *ngIf="!loading && !error && invoices.length > 0" class="invoice-table-container">
+    <p>Showing {{ paginatedInvoices.length }} of {{ totalItems }} invoices</p>
 
-      <mat-form-field class="sort-field" appearance="outline">
-        <mat-label>Sort by</mat-label>
-        <mat-select [(ngModel)]="sortField" (ngModelChange)="onSortChange()" [disabled]="loading">
-          <mat-option value="created_at">Date Created</mat-option>
-          <mat-option value="invoice_number">Invoice Number</mat-option>
-          <mat-option value="client_name">Client Name</mat-option>
-          <mat-option value="invoice_amount">Amount</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <button mat-icon-button (click)="toggleSortDirection()" matTooltip="Toggle sort direction" class="sort-direction-btn" [disabled]="loading">
-        <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
-      </button>
-    </div>
-
-    <div class="results-info" *ngIf="!loading && !error">
-      Showing {{ paginatedInvoices.length }} of {{ totalItems }} invoices
-    </div>
-
-    <div class="loading-info" *ngIf="loading && invoices.length > 0">
-      <mat-spinner diameter="16"></mat-spinner>
-      <span>Refreshing invoices...</span>
-    </div>
-  </div>
-
-  <!-- Loading State - Skeleton Loader -->
-  <div *ngIf="loading && invoices.length === 0" class="skeleton-container">
-    <div class="skeleton-header">
-      <div class="skeleton-title"></div>
-      <div class="skeleton-button"></div>
-    </div>
-
-    <div class="skeleton-filters">
-      <div class="skeleton-filter"></div>
-      <div class="skeleton-filter"></div>
-      <div class="skeleton-filter"></div>
-    </div>
-
-    <div class="skeleton-table">
-      <div class="skeleton-row skeleton-header-row">
-        <div class="skeleton-cell" *ngFor="let i of [1,2,3,4,5,6,7,8]"></div>
-      </div>
-      <div class="skeleton-row" *ngFor="let row of [1,2,3,4,5,6,7,8,9,10]">
-        <div class="skeleton-cell" *ngFor="let i of [1,2,3,4,5,6,7,8]"></div>
-      </div>
-    </div>
-
-    <div class="skeleton-loading-message">
-      <mat-spinner diameter="24"></mat-spinner>
-      <span>Loading invoices from server...</span>
-    </div>
-  </div>
-
-  <!-- Error State -->
-  <div *ngIf="error && !loading" class="error-container">
-    <mat-icon class="error-icon">error_outline</mat-icon>
-    <p class="error-message">{{ error }}</p>
-    <button mat-raised-button color="primary" (click)="loadInvoices()">
-      <mat-icon>refresh</mat-icon>
-      Try Again
-    </button>
-  </div>
-
-  <!-- Empty State -->
-  <div *ngIf="!loading && !error && totalItems === 0" class="empty-container">
-    <mat-icon class="empty-icon">receipt_long</mat-icon>
-    <h3>No Invoices Found</h3>
-    <p>Start by uploading your first invoice</p>
-    <button mat-raised-button color="primary" (click)="goToUpload()">
-      <mat-icon>upload_file</mat-icon>
-      Upload Invoice
-    </button>
-  </div>
-
-  <!-- Table View -->
-  <div *ngIf="!error && totalItems > 0" class="invoice-table-container" [class.loading-overlay]="loading">
-    <div *ngIf="loading" class="table-loading-overlay">
-      <mat-spinner diameter="40"></mat-spinner>
-      <span>Refreshing data...</span>
-    </div>
     <table class="invoice-table modern-header">
       <thead>
         <tr>
-          <th class="row-number-header">
-            <span>#</span>
-          </th>
-          <th>
-            <mat-icon class="header-icon">description</mat-icon>
-            <span>Invoice</span>
-          </th>
-          <th>
-            <mat-icon class="header-icon">account_circle</mat-icon>
-            <span>Client</span>
-          </th>
-          <th>
-            <mat-icon class="header-icon">payments</mat-icon>
-            <span>Amount</span>
-          </th>
-          <th>
-            <mat-icon class="header-icon">event</mat-icon>
-            <span>Issue Date</span>
-          </th>
-          <th>
-            <mat-icon class="header-icon">event</mat-icon>
-            <span>Due Date</span>
-          </th>
-          <th>
-            <mat-icon class="header-icon">label</mat-icon>
-            <span>Status</span>
-          </th>
-          <th>
-            <mat-icon class="header-icon">settings</mat-icon>
-            <span>Actions</span>
-          </th>
+          <th>#</th>
+          <th>Invoice</th>
+          <th>Client</th>
+          <th>Amount</th>
+          <th>Issue Date</th>
+          <th>Due Date</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         <tr *ngFor="let invoice of paginatedInvoices; let i = index">
-          <td class="row-number">{{ (pageIndex * pageSize) + i + 1 }}</td>
-          <td class="invoice-number">{{ invoice.invoice_number }}</td>
+          <td>{{ i + 1 }}</td>
+          <td>{{ invoice.invoice_number }}</td>
           <td>{{ invoice.client_name }}</td>
-          <td class="amount">{{ invoice.currency }} {{ invoice.invoice_amount | number:'1.2-2' }}</td>
+          <td>{{ invoice.currency }} {{ invoice.invoice_amount | number:'1.2-2' }}</td>
           <td>{{ formatDate(invoice.issue_date) }}</td>
           <td>{{ formatDate(invoice.due_date) }}</td>
           <td>
@@ -156,29 +40,29 @@
             </span>
           </td>
           <td class="actions">
-            <button mat-icon-button color="primary" (click)="viewInvoice(invoice.invoice_key!)" matTooltip="View">
+            <button mat-icon-button color="primary" (click)="viewInvoice(invoice.invoice_key!)">
               <mat-icon>visibility</mat-icon>
             </button>
-            <button mat-icon-button (click)="editInvoice(invoice.invoice_key!)" matTooltip="Edit">
+            <button mat-icon-button (click)="editInvoice(invoice.invoice_key!)">
               <mat-icon>edit</mat-icon>
             </button>
-            <button mat-icon-button color="warn" (click)="deleteInvoice(invoice)" matTooltip="Delete">
+            <button mat-icon-button color="warn" (click)="deleteInvoice(invoice)">
               <mat-icon>delete</mat-icon>
             </button>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <mat-paginator
+      [length]="totalItems"
+      [pageSize]="pageSize"
+      [pageSizeOptions]="pageSizeOptions"
+      [pageIndex]="pageIndex"
+      (page)="onPageChange($event)"
+      showFirstLastButtons>
+    </mat-paginator>
   </div>
 
-  <!-- Pagination -->
-  <mat-paginator *ngIf="!error && totalItems > 0"
-    [length]="totalItems"
-    [pageSize]="pageSize"
-    [pageSizeOptions]="pageSizeOptions"
-    [pageIndex]="pageIndex"
-    [disabled]="loading"
-    (page)="onPageChange($event)"
-    showFirstLastButtons>
-  </mat-paginator>
+  <p *ngIf="!loading && invoices.length === 0">No invoices found</p>
 </div>

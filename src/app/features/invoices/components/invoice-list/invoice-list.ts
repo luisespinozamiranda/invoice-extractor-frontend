@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectorRef, NgZone } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -39,8 +39,7 @@ export class InvoiceList implements OnInit {
   private router = inject(Router);
   private dialog = inject(MatDialog);
   private snackBar = inject(MatSnackBar);
-  private cdr = inject(ChangeDetectorRef);
-  private ngZone = inject(NgZone);
+  public cdr = inject(ChangeDetectorRef); // Public for template access
 
   // Data
   invoices: Invoice[] = [];
@@ -73,42 +72,37 @@ export class InvoiceList implements OnInit {
     this.loading = true;
     this.error = null;
 
-    // Call the real API
     this.invoiceService.getAllInvoices().subscribe({
       next: (invoices) => {
-        // Use ngZone.run() to ensure Angular detects changes
-        this.ngZone.run(() => {
-          this.invoices = invoices || [];
-          this.applyFilters();
-          this.loading = false;
-          console.log('✅ Data loaded successfully:', this.totalItems, 'invoices');
-        });
+        this.invoices = invoices || [];
+        this.applyFilters();
+        this.loading = false;
+
+        // CRITICAL: Manually trigger change detection since app uses NoopNgZone
+        this.cdr.detectChanges();
       },
       error: (error) => {
-        this.ngZone.run(() => {
-          console.error('❌ Error loading invoices:', error);
+        console.error('Error loading invoices:', error);
 
-          if (error.message?.includes('timeout') || error.message?.includes('sleeping')) {
-            this.error = '⏱️ Server is taking too long. Backend might be sleeping (Render free tier). Please wait and try again.';
-          } else if (error.status === 0) {
-            this.error = '🔌 Cannot connect to server.';
-          } else if (error.status === 404) {
-            this.error = '❌ API endpoint not found.';
-          } else if (error.status >= 500) {
-            this.error = '🔧 Server error. Please try again.';
-          } else {
-            this.error = 'Failed to load invoices. Please try again.';
-          }
+        if (error.message?.includes('timeout') || error.message?.includes('sleeping')) {
+          this.error = 'Server is taking too long. Please wait and try again.';
+        } else if (error.status === 0) {
+          this.error = 'Cannot connect to server.';
+        } else if (error.status === 404) {
+          this.error = 'API endpoint not found.';
+        } else if (error.status >= 500) {
+          this.error = 'Server error. Please try again.';
+        } else {
+          this.error = 'Failed to load invoices. Please try again.';
+        }
 
-          this.loading = false;
-        });
+        this.loading = false;
+        this.cdr.detectChanges();
       }
     });
   }
 
   applyFilters(): void {
-    console.log('[applyFilters] Starting with invoices:', this.invoices.length);
-
     let filtered = [...this.invoices];
 
     // Apply search filter
@@ -118,13 +112,11 @@ export class InvoiceList implements OnInit {
         inv.invoice_number.toLowerCase().includes(term) ||
         inv.client_name.toLowerCase().includes(term)
       );
-      console.log('[applyFilters] After search filter:', filtered.length);
     }
 
     // Apply status filter
     if (this.selectedStatus !== 'all') {
       filtered = filtered.filter(inv => inv.status === this.selectedStatus);
-      console.log('[applyFilters] After status filter:', filtered.length);
     }
 
     // Apply sorting
@@ -148,14 +140,6 @@ export class InvoiceList implements OnInit {
 
     this.filteredInvoices = filtered;
     this.totalItems = filtered.length;
-
-    console.log('[applyFilters] Final results:', {
-      filteredInvoices: this.filteredInvoices.length,
-      totalItems: this.totalItems,
-      pageSize: this.pageSize,
-      pageIndex: this.pageIndex
-    });
-
     this.updatePagination();
   }
 
@@ -163,16 +147,6 @@ export class InvoiceList implements OnInit {
     const startIndex = this.pageIndex * this.pageSize;
     const endIndex = startIndex + this.pageSize;
     this.paginatedInvoices = this.filteredInvoices.slice(startIndex, endIndex);
-
-    console.log('[updatePagination]', {
-      startIndex,
-      endIndex,
-      paginatedInvoices: this.paginatedInvoices.length,
-      firstInvoice: this.paginatedInvoices[0],
-      pageIndex: this.pageIndex,
-      pageSize: this.pageSize,
-      totalItems: this.totalItems
-    });
   }
 
   onSearchChange(): void {
@@ -193,6 +167,7 @@ export class InvoiceList implements OnInit {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
     this.updatePagination();
+    this.cdr.detectChanges();
   }
 
   toggleSortDirection(): void {
