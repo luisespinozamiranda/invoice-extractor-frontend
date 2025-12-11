@@ -241,186 +241,135 @@
     position: relative;
     overflow-x: auto;
     background: #fff;
-    border-radius: 14px;
-    box-shadow: 0 4px 24px rgba(60, 80, 120, 0.12);
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
     margin-bottom: 24px;
     padding: 0;
     transition: opacity 0.3s ease;
+    border: 1px solid #e0e0e0;
 
-    &.loading-overlay {
-      opacity: 0.6;
-      pointer-events: none;
-    }
-
-    .table-loading-overlay {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.95);
-      padding: 24px 32px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      z-index: 10;
-
-      span {
-        font-size: 14px;
-        color: #3f51b5;
-        font-weight: 500;
-      }
+    p {
+      padding: 16px 20px;
+      margin: 0;
+      color: #666;
+      font-size: 14px;
+      background: #f8f9fa;
+      border-bottom: 1px solid #e0e0e0;
     }
 
     .invoice-table.modern-header {
       width: 100%;
       border-collapse: collapse;
-      overflow: hidden;
-      background: linear-gradient(90deg, #fffde4 0%, #f7f7fa 100%);
-      border: 2px solid #3f51b5;
-      border-radius: 14px;
 
       thead {
-        tr {
-          background: linear-gradient(90deg, #3f51b5 0%, #e91e63 100%);
-          border-bottom: 2px solid #fffde4;
-        }
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 
         th {
-          padding: 20px 14px;
-          font-size: 17px;
-          font-weight: 700;
+          padding: 16px 20px;
+          font-size: 14px;
+          font-weight: 600;
           color: #fff;
-          border-bottom: 1px solid #fffde4;
           text-align: left;
           white-space: nowrap;
           letter-spacing: 0.5px;
-          position: relative;
-          background: none;
-          text-shadow: 0 2px 8px rgba(60, 80, 120, 0.18);
+          text-transform: uppercase;
+          border-bottom: 2px solid #e0e0e0;
 
-          .header-icon {
-            font-size: 20px;
-            vertical-align: middle;
-            margin-right: 8px;
-            color: #fffde4;
-            filter: drop-shadow(0 2px 4px #e91e63);
-          }
-
-          &.row-number-header {
-            width: 40px;
+          &:first-child {
+            width: 60px;
             text-align: center;
-            color: #fffde4;
-            font-size: 16px;
-            font-weight: 700;
           }
         }
       }
 
       tbody {
         tr {
-          border-bottom: 1px solid #e91e63;
-          transition: background 0.2s, color 0.2s;
-
-          &:nth-child(even) {
-            background: #fce4ec;
-          }
-
-          &:nth-child(odd) {
-            background: #e3f2fd;
-          }
+          border-bottom: 1px solid #f0f0f0;
+          transition: all 0.2s ease;
 
           &:hover {
-            background: linear-gradient(90deg, #e91e63 0%, #3f51b5 100%);
+            background-color: #f8f9fa;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          }
 
-            td {
-              color: #fff;
-            }
-
-            .status-badge {
-              background: #fffde4;
-              color: #3f51b5;
-            }
+          &:last-child {
+            border-bottom: none;
           }
         }
 
         td {
-          padding: 18px 14px;
-          font-size: 16px;
-          color: #3f51b5;
+          padding: 16px 20px;
+          font-size: 14px;
+          color: #333;
           vertical-align: middle;
-          background: none;
-          font-weight: 500;
-          transition: color 0.2s;
 
-          &.row-number {
+          &:first-child {
             text-align: center;
-            color: #e91e63;
-            font-weight: 700;
-            font-size: 16px;
-            background: #fffde4;
-            border-right: 1px solid #e91e63;
+            color: #999;
+            font-weight: 500;
           }
 
-          &.invoice-number {
-            font-weight: 700;
-            color: #e91e63;
+          &:nth-child(2) {
+            font-weight: 600;
+            color: #667eea;
           }
 
-          &.amount {
-            font-weight: 700;
+          &:nth-child(4) {
+            font-weight: 600;
             color: #4caf50;
           }
 
           &.actions {
             white-space: nowrap;
+
+            button {
+              margin: 0 4px;
+
+              &:first-child {
+                margin-left: 0;
+              }
+            }
           }
         }
       }
 
       .status-badge {
         display: inline-block;
-        padding: 6px 14px;
-        border-radius: 12px;
-        font-size: 13px;
-        font-weight: 700;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        background: #e91e63;
-        color: #fffde4;
-        box-shadow: 0 2px 8px rgba(60, 80, 120, 0.18);
-        transition: all 0.2s;
 
         &.status-draft {
-          background-color: #ffeb3b;
-          color: #3f51b5;
+          background-color: #fff9c4;
+          color: #f57f17;
         }
 
         &.status-pending {
-          background-color: #ff9800;
-          color: #fff;
+          background-color: #ffe0b2;
+          color: #e65100;
         }
 
         &.status-paid {
-          background-color: #4caf50;
-          color: #fff;
+          background-color: #c8e6c9;
+          color: #2e7d32;
         }
 
         &.status-overdue {
-          background-color: #f44336;
-          color: #fff;
+          background-color: #ffcdd2;
+          color: #c62828;
         }
 
         &.status-cancelled {
-          background-color: #9e9e9e;
-          color: #fff;
+          background-color: #e0e0e0;
+          color: #616161;
         }
 
         &.status-extracted {
-          background-color: #00bcd4;
-          color: #fff;
+          background-color: #b3e5fc;
+          color: #01579b;
         }
       }
     }
