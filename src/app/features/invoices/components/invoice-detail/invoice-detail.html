@@ -1,0 +1,117 @@
+<div class="invoice-detail-container">
+  <!-- Header -->
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Invoice Details</h1>
+    <button mat-raised-button color="primary" (click)="editInvoice()" *ngIf="invoice">
+      <mat-icon>edit</mat-icon>
+      Edit Invoice
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading invoice details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p class="error-message">{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to List
+    </button>
+  </div>
+
+  <!-- Invoice Details -->
+  <div *ngIf="!loading && !error && invoice" class="invoice-content">
+    <mat-card class="detail-card">
+      <mat-card-header>
+        <mat-card-title>
+          <div class="invoice-header">
+            <span class="invoice-number">{{ invoice.invoice_number }}</span>
+            <mat-chip [class]="'status-chip status-' + invoice.status.toLowerCase()">
+              {{ invoice.status }}
+            </mat-chip>
+          </div>
+        </mat-card-title>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="details-grid">
+          <!-- Client Information -->
+          <div class="detail-section">
+            <h3>Client Information</h3>
+            <div class="detail-row">
+              <span class="label">Client Name:</span>
+              <span class="value">{{ invoice.client_name }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Address:</span>
+              <span class="value">{{ invoice.client_address || 'N/A' }}</span>
+            </div>
+          </div>
+
+          <!-- Invoice Information -->
+          <div class="detail-section">
+            <h3>Invoice Information</h3>
+            <div class="detail-row">
+              <span class="label">Invoice Number:</span>
+              <span class="value">{{ invoice.invoice_number }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Amount:</span>
+              <span class="value amount">{{ invoice.currency }} {{ invoice.invoice_amount | number:'1.2-2' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Currency:</span>
+              <span class="value">{{ invoice.currency }}</span>
+            </div>
+          </div>
+
+          <!-- Dates -->
+          <div class="detail-section">
+            <h3>Dates</h3>
+            <div class="detail-row">
+              <span class="label">Issue Date:</span>
+              <span class="value">{{ formatDate(invoice.issue_date) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Due Date:</span>
+              <span class="value">{{ formatDate(invoice.due_date) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Created At:</span>
+              <span class="value">{{ formatDate(invoice.created_at) }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Updated At:</span>
+              <span class="value">{{ formatDate(invoice.updated_at) }}</span>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div class="detail-section full-width" *ngIf="invoice.notes">
+            <h3>Notes</h3>
+            <p class="notes-content">{{ invoice.notes }}</p>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions>
+        <button mat-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          Back to List
+        </button>
+        <button mat-raised-button color="primary" (click)="editInvoice()">
+          <mat-icon>edit</mat-icon>
+          Edit Invoice
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

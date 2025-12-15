@@ -15,7 +15,7 @@
   </div>
 
   <!-- Extraction Result (shown after successful extraction) -->
-  <div *ngIf="extractedInvoice && !isExtracting" class="extraction-result">
+  <div *ngIf="extractedInvoice && extractionMetadata && !isExtracting" class="extraction-result">
     <mat-card class="result-card">
       <mat-card-header>
         <mat-card-title>Extraction Successful!</mat-card-title>
@@ -26,23 +26,23 @@
         <div class="invoice-summary">
           <div class="summary-row">
             <span class="label">Invoice Number:</span>
-            <span class="value">{{ extractedInvoice.invoice.invoice_number }}</span>
+            <span class="value">{{ extractedInvoice.invoice_number }}</span>
           </div>
           <div class="summary-row">
             <span class="label">Amount:</span>
-            <span class="value amount">{{ extractedInvoice.invoice.currency }} {{ extractedInvoice.invoice.invoice_amount }}</span>
+            <span class="value amount">{{ extractedInvoice.currency }} {{ extractedInvoice.invoice_amount }}</span>
           </div>
           <div class="summary-row">
             <span class="label">Client:</span>
-            <span class="value">{{ extractedInvoice.invoice.client_name }}</span>
+            <span class="value">{{ extractedInvoice.client_name }}</span>
           </div>
           <div class="summary-row">
-            <span class="label">Issue Date:</span>
-            <span class="value">{{ extractedInvoice.invoice.issue_date | date:'mediumDate' }}</span>
+            <span class="label">Client Address:</span>
+            <span class="value">{{ extractedInvoice.client_address }}</span>
           </div>
           <div class="summary-row">
             <span class="label">Confidence:</span>
-            <span class="value confidence">{{ (extractedInvoice.extraction_metadata.confidence_score * 100).toFixed(1) }}%</span>
+            <span class="value confidence">{{ (extractionMetadata.confidence_score * 100).toFixed(1) }}%</span>
           </div>
         </div>
       </mat-card-content>

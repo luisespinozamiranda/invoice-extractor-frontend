@@ -1,14 +1,57 @@
 <div class="invoice-list-container">
   <div class="page-header">
-    <h1>Invoices ({{ totalItems }})</h1>
+    <h1 *ngIf="!loading">Invoices ({{ totalItems }})</h1>
     <button mat-raised-button color="primary" (click)="goToUpload()">
       <mat-icon>add</mat-icon>
       Upload Invoice
     </button>
   </div>
 
-  <p *ngIf="loading">Loading invoices...</p>
-  <p *ngIf="error" style="color: red;">{{ error }}</p>
+  <!-- Loading State with Skeleton -->
+  <div *ngIf="loading" class="skeleton-container">
+    <div class="skeleton-header">
+      <div class="skeleton-title"></div>
+      <div class="skeleton-button"></div>
+    </div>
+
+    <div class="skeleton-table">
+      <div class="skeleton-row skeleton-header-row">
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+      </div>
+      <div class="skeleton-row" *ngFor="let item of [1,2,3,4,5,6,7,8,9,10]">
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+        <div class="skeleton-cell"></div>
+      </div>
+    </div>
+
+    <div class="skeleton-loading-message">
+      <mat-spinner diameter="24"></mat-spinner>
+      <span>Loading invoices...</span>
+    </div>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p class="error-message">{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="loadInvoices()">
+      <mat-icon>refresh</mat-icon>
+      Try Again
+    </button>
+  </div>
 
   <div *ngIf="!loading && !error && invoices.length > 0" class="invoice-table-container">
     <p>Showing {{ paginatedInvoices.length }} of {{ totalItems }} invoices</p>
@@ -64,5 +107,14 @@
     </mat-paginator>
   </div>
 
-  <p *ngIf="!loading && invoices.length === 0">No invoices found</p>
+  <!-- Empty State -->
+  <div *ngIf="!loading && !error && invoices.length === 0" class="empty-container">
+    <mat-icon class="empty-icon">receipt_long</mat-icon>
+    <h3>No invoices found</h3>
+    <p>Get started by uploading your first invoice</p>
+    <button mat-raised-button color="primary" (click)="goToUpload()">
+      <mat-icon>add</mat-icon>
+      Upload Invoice
+    </button>
+  </div>
 </div>

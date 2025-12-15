@@ -1,0 +1,102 @@
+<div class="invoice-edit-container">
+  <!-- Header -->
+  <div class="page-header">
+    <button mat-icon-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>Edit Invoice</h1>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Loading invoice...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !loading" class="error-container">
+    <mat-icon class="error-icon">error_outline</mat-icon>
+    <p class="error-message">{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Back to List
+    </button>
+  </div>
+
+  <!-- Edit Form -->
+  <div *ngIf="!loading && !error && invoice" class="edit-form">
+    <form #invoiceForm="ngForm" (ngSubmit)="saveInvoice()">
+      <div class="form-grid">
+        <!-- Invoice Number -->
+        <mat-form-field appearance="outline">
+          <mat-label>Invoice Number</mat-label>
+          <input matInput [(ngModel)]="invoice.invoice_number" name="invoice_number" required>
+        </mat-form-field>
+
+        <!-- Client Name -->
+        <mat-form-field appearance="outline">
+          <mat-label>Client Name</mat-label>
+          <input matInput [(ngModel)]="invoice.client_name" name="client_name" required>
+        </mat-form-field>
+
+        <!-- Client Address -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Client Address</mat-label>
+          <input matInput [(ngModel)]="invoice.client_address" name="client_address">
+        </mat-form-field>
+
+        <!-- Currency -->
+        <mat-form-field appearance="outline">
+          <mat-label>Currency</mat-label>
+          <input matInput [(ngModel)]="invoice.currency" name="currency" required>
+        </mat-form-field>
+
+        <!-- Amount -->
+        <mat-form-field appearance="outline">
+          <mat-label>Amount</mat-label>
+          <input matInput type="number" [(ngModel)]="invoice.invoice_amount" name="invoice_amount" required step="0.01">
+        </mat-form-field>
+
+        <!-- Issue Date -->
+        <mat-form-field appearance="outline">
+          <mat-label>Issue Date</mat-label>
+          <input matInput type="date" [(ngModel)]="invoice.issue_date" name="issue_date" required>
+        </mat-form-field>
+
+        <!-- Due Date -->
+        <mat-form-field appearance="outline">
+          <mat-label>Due Date</mat-label>
+          <input matInput type="date" [(ngModel)]="invoice.due_date" name="due_date" required>
+        </mat-form-field>
+
+        <!-- Status -->
+        <mat-form-field appearance="outline">
+          <mat-label>Status</mat-label>
+          <mat-select [(ngModel)]="invoice.status" name="status" required>
+            <mat-option *ngFor="let status of statusOptions" [value]="status.value">
+              {{ status.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Notes -->
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Notes</mat-label>
+          <textarea matInput [(ngModel)]="invoice.notes" name="notes" rows="4"></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-button type="button" (click)="cancel()" [disabled]="saving">
+          Cancel
+        </button>
+        <button mat-raised-button color="primary" type="submit" [disabled]="!invoiceForm.valid || saving">
+          <mat-spinner diameter="20" *ngIf="saving"></mat-spinner>
+          <mat-icon *ngIf="!saving">save</mat-icon>
+          {{ saving ? 'Saving...' : 'Save Changes' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

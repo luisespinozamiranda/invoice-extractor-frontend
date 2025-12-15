@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpEvent, HttpEventType } from '@angular/common/http';
-import { Observable, tap, map, catchError } from 'rxjs';
-import { ExtractionResponse, ExtractionMetadata } from '../../models';
+import { HttpClient, HttpEvent, HttpEventType, HttpResponse } from '@angular/common/http';
+import { Observable, tap, map, catchError, filter, interval, switchMap, takeWhile, take } from 'rxjs';
+import { ExtractionResponse, ExtractionMetadata, ExtractionStatus } from '../../models';
 import { API_ENDPOINTS } from '../../constants/api-endpoints';
 import { UploadProgressService } from '../state/upload-progress.service';
 import { UploadPhase } from '../../models/upload-progress.model';
@@ -36,12 +36,10 @@ export class ExtractionService {
           this.simulateProcessingPhases();
         }
       }),
-      map((event: HttpEvent<any>) => {
-        if (event.type === HttpEventType.Response) {
-          return event.body as ExtractionResponse;
-        }
-        return null as any;
-      }),
+      filter((event: HttpEvent<any>): event is HttpResponse<ExtractionResponse> =>
+        event.type === HttpEventType.Response
+      ),
+      map((event: HttpResponse<ExtractionResponse>) => event.body!),
       catchError((error) => {
         this.uploadProgressService.setError(
           error.userMessage || 'Failed to extract invoice. Please try again.'
@@ -92,7 +90,37 @@ export class ExtractionService {
     }, 25000);
   }
 
-  getExtractionMetadata(key: string): Observable<ExtractionMetadata> {
-    return this.http.get<ExtractionMetadata>(API_ENDPOINTS.EXTRACTION_BY_KEY(key));
+  getExtractionMetadataByInvoiceKey(invoiceKey: string): Observable<ExtractionMetadata> {
+    return this.http.get<ExtractionMetadata>(API_ENDPOINTS.EXTRACTION_BY_INVOICE_KEY(invoiceKey));
+  }
+
+  /**
+   * Polls the extraction status until it's no longer PROCESSING
+   * @param invoiceKey - The invoice key to poll
+   * @param pollingInterval - Interval in milliseconds (default: 2000ms)
+   * @param maxAttempts - Maximum number of polling attempts (default: 30)
+   * @returns Observable that emits the final extraction metadata
+   */
+  pollExtractionStatus(
+    invoiceKey: string,
+    pollingInterval: number = 2000,
+    maxAttempts: number = 30
+  ): Observable<ExtractionMetadata> {
+    return interval(pollingInterval).pipe(
+      switchMap(() => this.getExtractionMetadataByInvoiceKey(invoiceKey)),
+      tap((metadata) => {
+        console.log('Polling extraction status:', metadata.extraction_status);
+      }),
+      takeWhile(
+        (metadata, index) => {
+          // Continue polling if status is PROCESSING and we haven't exceeded max attempts
+          const shouldContinue = metadata.extraction_status === ExtractionStatus.PROCESSING && index < maxAttempts;
+          return shouldContinue;
+        },
+        true // inclusive: emit the final value that doesn't meet the condition
+      ),
+      filter((metadata) => metadata.extraction_status !== ExtractionStatus.PROCESSING),
+      take(1) // Only take the first non-PROCESSING status
+    );
   }
 }

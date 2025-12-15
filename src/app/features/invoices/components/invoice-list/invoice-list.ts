@@ -14,6 +14,8 @@ import { MatDialogModule, MatDialog, MAT_DIALOG_DATA } from '@angular/material/d
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { InvoiceService } from '../../../../core/services/api/invoice.service';
 import { Invoice } from '../../../../core/models/invoice.model';
+import { InvoiceDetailDialog } from '../invoice-detail/invoice-detail-dialog';
+import { InvoiceEditDialog } from '../invoice-edit/invoice-edit-dialog';
 
 @Component({
   selector: 'app-invoice-list',
@@ -193,11 +195,33 @@ export class InvoiceList implements OnInit {
   }
 
   viewInvoice(invoiceKey: string): void {
-    this.router.navigate(['/invoices', invoiceKey]);
+    const dialogRef = this.dialog.open(InvoiceDetailDialog, {
+      width: '800px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      data: { invoiceKey }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.action === 'edit') {
+        this.editInvoice(invoiceKey);
+      }
+    });
   }
 
   editInvoice(invoiceKey: string): void {
-    this.router.navigate(['/invoices', invoiceKey, 'edit']);
+    const dialogRef = this.dialog.open(InvoiceEditDialog, {
+      width: '700px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      data: { invoiceKey }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result?.action === 'saved') {
+        this.loadInvoices(); // Reload the list to show updated data
+      }
+    });
   }
 
   deleteInvoice(invoice: Invoice): void {
@@ -231,12 +255,10 @@ export class InvoiceList implements OnInit {
   get statusOptions() {
     return [
       { value: 'all', label: 'All Statuses' },
-      { value: 'DRAFT', label: 'Draft' },
-      { value: 'PENDING', label: 'Pending' },
-      { value: 'PAID', label: 'Paid' },
-      { value: 'OVERDUE', label: 'Overdue' },
-      { value: 'CANCELLED', label: 'Cancelled' },
-      { value: 'EXTRACTED', label: 'Extracted' }
+      { value: 'PROCESSING', label: 'Processing' },
+      { value: 'EXTRACTED', label: 'Extracted' },
+      { value: 'EXTRACTION_FAILED', label: 'Extraction Failed' },
+      { value: 'PENDING', label: 'Pending' }
     ];
   }
 }

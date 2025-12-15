@@ -1,13 +1,16 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, interval, takeWhile } from 'rxjs';
+import { Injectable, inject } from '@angular/core';
+import { BehaviorSubject, Observable, interval, takeWhile, Subscription } from 'rxjs';
 import { UploadProgress, UploadPhase, PHASE_MESSAGES, PHASE_DURATIONS } from '../../models/upload-progress.model';
+import { WebSocketService, ExtractionEvent } from '../websocket/websocket.service';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UploadProgressService {
+  private websocketService = inject(WebSocketService);
   private progressSubject = new BehaviorSubject<UploadProgress>(this.getInitialProgress());
   public progress$: Observable<UploadProgress> = this.progressSubject.asObservable();
+  private websocketSubscription: Subscription | null = null;
 
   private getInitialProgress(): UploadProgress {
     return {
@@ -113,6 +116,91 @@ export class UploadProgressService {
 
   reset(): void {
     this.progressSubject.next(this.getInitialProgress());
+
+    // Unsubscribe from websocket events
+    if (this.websocketSubscription) {
+      this.websocketSubscription.unsubscribe();
+      this.websocketSubscription = null;
+    }
+  }
+
+  /**
+   * Start listening to WebSocket events for real-time progress updates
+   */
+  startWebSocketProgress(extractionKey: string): void {
+    const now = new Date();
+
+    // Initialize progress
+    this.progressSubject.next({
+      phase: UploadPhase.UPLOADING,
+      percentage: 0,
+      message: 'Starting extraction...',
+      estimatedTimeRemaining: this.getTotalEstimatedTime(),
+      startTime: now,
+      currentPhaseStartTime: now
+    });
+
+    // Subscribe to extraction topic
+    this.websocketService.subscribeToExtraction(extractionKey);
+
+    // Listen to websocket events
+    this.websocketSubscription = this.websocketService.events$.subscribe(event => {
+      if (event && event.extraction_key === extractionKey) {
+        this.processWebSocketEvent(event);
+      }
+    });
+  }
+
+  /**
+   * Process WebSocket extraction events and update progress
+   */
+  private processWebSocketEvent(event: ExtractionEvent): void {
+    const current = this.progressSubject.value;
+    const now = new Date();
+
+    // Map event types to phases and update progress
+    let phase: UploadPhase;
+    let message = event.message;
+
+    switch (event.type) {
+      case 'EXTRACTION_STARTED':
+        phase = UploadPhase.UPLOADING;
+        break;
+      case 'OCR_COMPLETED':
+        phase = UploadPhase.OCR_PROCESSING;
+        break;
+      case 'LLM_EXTRACTION_COMPLETED':
+        phase = UploadPhase.LLM_PROCESSING;
+        break;
+      case 'INVOICE_SAVED':
+        phase = UploadPhase.SAVING;
+        break;
+      case 'EXTRACTION_COMPLETED':
+        phase = UploadPhase.COMPLETE;
+        break;
+      case 'EXTRACTION_FAILED':
+        phase = UploadPhase.ERROR;
+        break;
+      default:
+        return; // Unknown event type, ignore
+    }
+
+    this.progressSubject.next({
+      phase,
+      percentage: event.progress,
+      message,
+      estimatedTimeRemaining: this.calculateTimeRemaining(event.progress, current.startTime),
+      startTime: current.startTime,
+      currentPhaseStartTime: phase !== current.phase ? now : current.currentPhaseStartTime
+    });
+
+    // If extraction completed or failed, unsubscribe
+    if (event.type === 'EXTRACTION_COMPLETED' || event.type === 'EXTRACTION_FAILED') {
+      if (this.websocketSubscription) {
+        this.websocketSubscription.unsubscribe();
+        this.websocketSubscription = null;
+      }
+    }
   }
 
   private getTotalEstimatedTime(): number {
@@ -120,7 +208,7 @@ export class UploadProgressService {
   }
 
   private calculateTimeRemaining(currentPercentage: number, startTime: Date): number {
-    const totalDuration = this.getTotalEstimatedTime();
+    if (currentPercentage === 0) return this.getTotalEstimatedTime();
     const elapsed = (new Date().getTime() - startTime.getTime()) / 1000;
     const estimatedTotal = (elapsed / currentPercentage) * 100;
     const remaining = Math.max(0, estimatedTotal - elapsed);

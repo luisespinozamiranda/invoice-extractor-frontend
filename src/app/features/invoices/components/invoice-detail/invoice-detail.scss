@@ -1,0 +1,237 @@
+.invoice-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 32px 16px;
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 32px;
+
+    h1 {
+      flex: 1;
+      font-size: 32px;
+      font-weight: 600;
+      color: #333;
+      margin: 0;
+    }
+
+    button mat-icon {
+      margin-right: 8px;
+    }
+  }
+
+  // Loading State
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    text-align: center;
+
+    p {
+      margin-top: 24px;
+      font-size: 16px;
+      color: #666;
+    }
+  }
+
+  // Error State
+  .error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 64px 24px;
+    text-align: center;
+
+    .error-icon {
+      font-size: 64px;
+      width: 64px;
+      height: 64px;
+      color: #f44336;
+      margin-bottom: 16px;
+    }
+
+    .error-message {
+      font-size: 16px;
+      color: #c62828;
+      margin: 0 0 24px 0;
+    }
+
+    button mat-icon {
+      margin-right: 8px;
+    }
+  }
+
+  // Invoice Content
+  .invoice-content {
+    .detail-card {
+      box-shadow: 0 4px 24px rgba(60, 80, 120, 0.12);
+      border-radius: 12px;
+      overflow: hidden;
+
+      mat-card-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        padding: 24px;
+
+        mat-card-title {
+          color: #fff;
+          margin: 0;
+
+          .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+
+            .invoice-number {
+              font-size: 28px;
+              font-weight: 700;
+            }
+
+            .status-chip {
+              font-size: 14px;
+              font-weight: 600;
+              padding: 8px 16px;
+              border-radius: 20px;
+              text-transform: uppercase;
+              letter-spacing: 0.5px;
+
+              &.status-processing {
+                background-color: #fff9c4;
+                color: #f57f17;
+              }
+
+              &.status-extracted {
+                background-color: #c8e6c9;
+                color: #2e7d32;
+              }
+
+              &.status-extraction_failed {
+                background-color: #ffcdd2;
+                color: #c62828;
+              }
+
+              &.status-pending {
+                background-color: #ffe0b2;
+                color: #e65100;
+              }
+            }
+          }
+        }
+      }
+
+      mat-card-content {
+        padding: 32px;
+
+        .details-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+          gap: 32px;
+
+          .detail-section {
+            h3 {
+              font-size: 18px;
+              font-weight: 600;
+              color: #667eea;
+              margin: 0 0 16px 0;
+              padding-bottom: 8px;
+              border-bottom: 2px solid #f0f0f0;
+            }
+
+            .detail-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 12px 0;
+              border-bottom: 1px solid #f8f9fa;
+
+              &:last-child {
+                border-bottom: none;
+              }
+
+              .label {
+                font-weight: 600;
+                color: #666;
+                flex: 0 0 40%;
+              }
+
+              .value {
+                color: #333;
+                text-align: right;
+                flex: 1;
+
+                &.amount {
+                  font-size: 20px;
+                  font-weight: 700;
+                  color: #4caf50;
+                }
+              }
+            }
+
+            &.full-width {
+              grid-column: 1 / -1;
+
+              .notes-content {
+                background: #f8f9fa;
+                padding: 16px;
+                border-radius: 8px;
+                color: #333;
+                line-height: 1.6;
+                margin: 0;
+              }
+            }
+          }
+        }
+      }
+
+      mat-card-actions {
+        padding: 16px 32px;
+        border-top: 1px solid #f0f0f0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        button mat-icon {
+          margin-right: 8px;
+        }
+      }
+    }
+  }
+
+  // Responsive
+  @media (max-width: 768px) {
+    padding: 16px 8px;
+
+    .page-header {
+      h1 {
+        font-size: 24px;
+      }
+    }
+
+    .invoice-content {
+      .detail-card {
+        mat-card-content {
+          padding: 16px;
+
+          .details-grid {
+            grid-template-columns: 1fr;
+            gap: 24px;
+          }
+        }
+
+        mat-card-actions {
+          flex-direction: column;
+          gap: 8px;
+
+          button {
+            width: 100%;
+          }
+        }
+      }
+    }
+  }
+}

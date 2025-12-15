@@ -342,34 +342,24 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
 
-        &.status-draft {
+        &.status-processing {
           background-color: #fff9c4;
           color: #f57f17;
+        }
+
+        &.status-extracted {
+          background-color: #c8e6c9;
+          color: #2e7d32;
+        }
+
+        &.status-extraction_failed {
+          background-color: #ffcdd2;
+          color: #c62828;
         }
 
         &.status-pending {
           background-color: #ffe0b2;
           color: #e65100;
-        }
-
-        &.status-paid {
-          background-color: #c8e6c9;
-          color: #2e7d32;
-        }
-
-        &.status-overdue {
-          background-color: #ffcdd2;
-          color: #c62828;
-        }
-
-        &.status-cancelled {
-          background-color: #e0e0e0;
-          color: #616161;
-        }
-
-        &.status-extracted {
-          background-color: #b3e5fc;
-          color: #01579b;
         }
       }
     }

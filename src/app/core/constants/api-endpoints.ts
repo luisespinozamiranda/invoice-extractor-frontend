@@ -1,7 +1,7 @@
 export const API_ENDPOINTS = {
   // Extraction endpoints
   EXTRACTIONS: '/api/v1.0/extractions',
-  EXTRACTION_BY_KEY: (key: string) => `/api/v1.0/extractions/${key}`,
+  EXTRACTION_BY_INVOICE_KEY: (invoiceKey: string) => `/api/v1.0/extractions/${invoiceKey}`,
 
   // Invoice endpoints
   INVOICES: '/api/v1.0/invoices',

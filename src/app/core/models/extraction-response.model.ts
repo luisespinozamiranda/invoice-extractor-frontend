@@ -1,8 +1,4 @@
-import { Invoice } from './invoice.model';
 import { ExtractionMetadata } from './extraction-metadata.model';
 
-export interface ExtractionResponse {
-  invoice: Invoice;
-  extraction_metadata: ExtractionMetadata;
-  message: string;
-}
+// The API now returns ExtractionMetadata directly (no wrapper)
+export type ExtractionResponse = ExtractionMetadata;

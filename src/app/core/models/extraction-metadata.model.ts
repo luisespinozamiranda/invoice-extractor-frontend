@@ -2,8 +2,6 @@ export interface ExtractionMetadata {
   extraction_key: string;
   invoice_key: string;
   source_file_name: string;
-  file_type: string;
-  file_size_bytes: number;
   extraction_timestamp: string;
   extraction_status: ExtractionStatus;
   confidence_score: number;      // 0.0 - 1.0
@@ -17,6 +15,7 @@ export interface ExtractionMetadata {
 
 export enum ExtractionStatus {
   PROCESSING = 'PROCESSING',
-  SUCCESS = 'SUCCESS',
+  COMPLETED = 'COMPLETED',
+  SUCCESS = 'SUCCESS',  // Legacy support
   FAILED = 'FAILED'
 }
