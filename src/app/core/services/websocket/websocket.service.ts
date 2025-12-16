@@ -24,11 +24,12 @@ export class WebSocketService {
 
   connect(): void {
     if (this.stompClient && this.stompClient.connected) {
-      console.log('WebSocket already connected');
+      console.log('[WebSocketService] WebSocket already connected');
       return;
     }
 
     const apiUrl = 'http://localhost:8080/invoice-extractor-service';
+    console.log('[WebSocketService] Connecting to WebSocket at:', `${apiUrl}/ws-extraction`);
 
     this.stompClient = new Client({
       webSocketFactory: () => new SockJS(`${apiUrl}/ws-extraction`),
@@ -36,46 +37,58 @@ export class WebSocketService {
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000,
       debug: (str) => {
-        console.log('STOMP: ' + str);
+        console.log('[WebSocketService] STOMP:', str);
       }
     });
 
-    this.stompClient.onConnect = () => {
-      console.log('WebSocket connected successfully');
+    this.stompClient.onConnect = (frame) => {
+      console.log('[WebSocketService] WebSocket connected successfully', frame);
     };
 
     this.stompClient.onStompError = (frame) => {
-      console.error('WebSocket error:', frame.headers['message'], frame.body);
+      console.error('[WebSocketService] WebSocket STOMP error:', frame.headers['message'], frame.body);
+    };
+
+    this.stompClient.onWebSocketError = (event) => {
+      console.error('[WebSocketService] WebSocket error event:', event);
     };
 
     this.stompClient.activate();
+    console.log('[WebSocketService] WebSocket activation initiated');
   }
 
   subscribeToExtraction(extractionKey: string): void {
+    console.log('[WebSocketService] subscribeToExtraction called for key:', extractionKey);
+
     if (!this.stompClient) {
-      console.error('WebSocket client not initialized');
+      console.error('[WebSocketService] WebSocket client not initialized');
       return;
     }
 
     const destination = `/topic/extraction/${extractionKey}`;
+    console.log('[WebSocketService] Destination topic:', destination);
 
     // Wait for connection if not connected yet
     const subscribe = () => {
-      this.stompClient!.subscribe(destination, (message: IMessage) => {
+      console.log('[WebSocketService] Subscribing to topic:', destination);
+      const subscription = this.stompClient!.subscribe(destination, (message: IMessage) => {
+        console.log('[WebSocketService] Raw message received:', message.body);
         const event: ExtractionEvent = JSON.parse(message.body);
-        console.log('Received extraction event:', event);
+        console.log('[WebSocketService] Parsed extraction event:', event);
         this.eventSubject.next(event);
       });
-      console.log(`Subscribed to ${destination}`);
+      console.log('[WebSocketService] Subscription created:', subscription.id);
     };
 
     if (this.stompClient.connected) {
+      console.log('[WebSocketService] WebSocket already connected, subscribing immediately');
       subscribe();
     } else {
-      console.log('Waiting for WebSocket connection...');
+      console.log('[WebSocketService] WebSocket not connected yet, waiting for connection...');
       // Wait for connection and then subscribe
       const originalOnConnect = this.stompClient.onConnect;
       this.stompClient.onConnect = (frame) => {
+        console.log('[WebSocketService] Connection established, calling original onConnect and subscribing');
         if (originalOnConnect) originalOnConnect(frame);
         subscribe();
       };
@@ -84,13 +97,15 @@ export class WebSocketService {
 
   disconnect(): void {
     if (this.stompClient) {
+      console.log('[WebSocketService] Disconnecting WebSocket');
       this.stompClient.deactivate();
       this.stompClient = null;
-      console.log('WebSocket disconnected');
+      console.log('[WebSocketService] WebSocket disconnected');
     }
   }
 
   clearEvents(): void {
+    console.log('[WebSocketService] Clearing events');
     this.eventSubject.next(null);
   }
 }

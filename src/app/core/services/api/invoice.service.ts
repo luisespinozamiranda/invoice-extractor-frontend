@@ -41,7 +41,17 @@ export class InvoiceService {
   }
 
   getInvoiceByKey(key: string): Observable<Invoice> {
-    return this.http.get<Invoice>(API_ENDPOINTS.INVOICE_BY_KEY(key));
+    console.log('[InvoiceService] Fetching invoice by key:', key);
+    return this.http.get<Invoice>(API_ENDPOINTS.INVOICE_BY_KEY(key)).pipe(
+      map((invoice) => {
+        console.log('[InvoiceService] Invoice fetched successfully:', invoice);
+        return invoice;
+      }),
+      catchError((error) => {
+        console.error('[InvoiceService] Error fetching invoice by key:', key, error);
+        return throwError(() => error);
+      })
+    );
   }
 
   createInvoice(invoice: Invoice): Observable<Invoice> {

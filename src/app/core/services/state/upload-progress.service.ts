@@ -58,18 +58,35 @@ export class UploadProgressService {
   simulateProgress(): void {
     this.startUpload();
 
-    // Phase 1: Upload (0-20%) - 1 second
-    this.simulatePhase(UploadPhase.UPLOADING, 0, 20, 1000, () => {
-      // Phase 2: OCR Processing (20-70%) - 2 seconds
-      this.simulatePhase(UploadPhase.OCR_PROCESSING, 20, 70, 2000, () => {
-        // Phase 3: LLM Processing (70-90%) - 1 second
-        this.simulatePhase(UploadPhase.LLM_PROCESSING, 70, 90, 1000, () => {
-          // Phase 4: Saving (90-100%) - 1 second
-          this.simulatePhase(UploadPhase.SAVING, 90, 100, 1000, () => {
-            this.complete();
-          });
+    // Phase 1: Upload (0-20%) - 0.5 seconds
+    this.simulatePhase(UploadPhase.UPLOADING, 0, 20, 500, () => {
+      // Phase 2: OCR Processing (20-70%) - 1.2 seconds
+      this.simulatePhase(UploadPhase.OCR_PROCESSING, 20, 70, 1200, () => {
+        // Phase 3: LLM Processing (70-95%) - 1.3 seconds
+        this.simulatePhase(UploadPhase.LLM_PROCESSING, 70, 95, 1300, () => {
+          // Stop at 95% and wait for backend response
+          // The calling code will trigger completion when ready
         });
       });
+    });
+  }
+
+  /**
+   * Complete the progress animation (from current progress to 100%)
+   * Call this when the backend has responded and we're ready to finish
+   */
+  finishProgress(): void {
+    const current = this.progressSubject.value;
+
+    // If already complete, do nothing
+    if (current.phase === UploadPhase.COMPLETE) {
+      return;
+    }
+
+    // Quick final phase: current% -> 100% in 0.2 seconds
+    const currentPercent = current.percentage;
+    this.simulatePhase(UploadPhase.SAVING, currentPercent, 100, 200, () => {
+      this.complete();
     });
   }
 
@@ -84,6 +101,9 @@ export class UploadProgressService {
     const stepDuration = durationMs / steps;
     const percentPerStep = (endPercent - startPercent) / steps;
     let currentStep = 0;
+
+    // Update progress immediately at the start of the phase
+    this.updateProgress(phase, startPercent);
 
     interval(stepDuration)
       .pipe(takeWhile(() => currentStep < steps))
@@ -162,6 +182,14 @@ export class UploadProgressService {
    * Process WebSocket extraction events and update progress
    */
   private processWebSocketEvent(event: ExtractionEvent): void {
+    console.log('[UploadProgressService] WebSocket Event:', {
+      type: event.type,
+      progress: event.progress,
+      message: event.message,
+      status: event.status,
+      timestamp: event.timestamp
+    });
+
     const current = this.progressSubject.value;
     const now = new Date();
 
@@ -171,12 +199,16 @@ export class UploadProgressService {
 
     switch (event.type) {
       case 'EXTRACTION_STARTED':
+      case 'FILE_UPLOADED':
         phase = UploadPhase.UPLOADING;
         break;
+      case 'OCR_STARTED':
       case 'OCR_COMPLETED':
         phase = UploadPhase.OCR_PROCESSING;
         break;
+      case 'LLM_STARTED':
       case 'LLM_EXTRACTION_COMPLETED':
+      case 'VALIDATING_DATA':
         phase = UploadPhase.LLM_PROCESSING;
         break;
       case 'INVOICE_SAVED':
@@ -189,8 +221,15 @@ export class UploadProgressService {
         phase = UploadPhase.ERROR;
         break;
       default:
+        console.warn('[UploadProgressService] Unknown event type:', event.type);
         return; // Unknown event type, ignore
     }
+
+    console.log('[UploadProgressService] Updating progress:', {
+      phase,
+      percentage: event.progress,
+      message
+    });
 
     this.progressSubject.next({
       phase,
@@ -203,6 +242,7 @@ export class UploadProgressService {
 
     // If extraction completed or failed, unsubscribe
     if (event.type === 'EXTRACTION_COMPLETED' || event.type === 'EXTRACTION_FAILED') {
+      console.log('[UploadProgressService] Extraction finished, unsubscribing from WebSocket');
       if (this.websocketSubscription) {
         this.websocketSubscription.unsubscribe();
         this.websocketSubscription = null;

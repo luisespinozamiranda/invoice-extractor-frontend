@@ -11,7 +11,7 @@ import { NotificationService } from '../../../../core/services/notification/noti
 import { UploadProgressService } from '../../../../core/services/state/upload-progress.service';
 import { ExtractionResponse, Invoice, ExtractionStatus } from '../../../../core/models';
 import { UploadPhase } from '../../../../core/models/upload-progress.model';
-import { switchMap, filter, take, skip } from 'rxjs';
+import { switchMap, filter, take } from 'rxjs';
 
 @Component({
   selector: 'app-upload-page',
@@ -46,26 +46,20 @@ export class UploadPage {
     this.extractionMetadata = null;
     this.extractedInvoice = null;
 
+    console.log('[UploadPage] File selected, starting extraction');
+
+    // Start simulating progress immediately (will show upload animation)
+    this.uploadProgressService.simulateProgress();
+
     this.extractionService.extractInvoice(file).pipe(
       switchMap((extractionResponse) => {
+        console.log('[UploadPage] Extraction API response:', extractionResponse);
+
         // Save extraction metadata
         this.extractionMetadata = extractionResponse;
 
         // Check if extraction is still processing or already completed
         const extractionKey = extractionResponse.extraction_key;
-
-        // If extraction is still PROCESSING, use WebSocket for real-time updates
-        if (extractionResponse.extraction_status === ExtractionStatus.PROCESSING && extractionKey) {
-          this.uploadProgressService.startWebSocketProgress(extractionKey);
-        } else if (extractionResponse.extraction_status === ExtractionStatus.COMPLETED ||
-                   extractionResponse.extraction_status === ExtractionStatus.SUCCESS) {
-          // If extraction already COMPLETED, restart simulated progress for better UX
-          this.uploadProgressService.reset();
-          this.uploadProgressService.simulateProgress();
-        } else if (extractionResponse.extraction_status === ExtractionStatus.FAILED) {
-          // If extraction failed, set error state
-          this.uploadProgressService.setError('Extraction failed');
-        }
 
         // Check if invoice_key exists
         const invoiceKey = extractionResponse.invoice_key || (extractionResponse as any).invoiceKey;
@@ -73,42 +67,57 @@ export class UploadPage {
           throw new Error('Invoice key not found in extraction response');
         }
 
-        // If status is PROCESSING, start polling for status updates
-        if (extractionResponse.extraction_status === ExtractionStatus.PROCESSING) {
-          return this.extractionService.pollExtractionStatus(invoiceKey).pipe(
-            switchMap((finalMetadata) => {
-              this.extractionMetadata = finalMetadata;
+        // Handle already completed or failed extractions
+        if (extractionResponse.extraction_status === ExtractionStatus.COMPLETED ||
+            extractionResponse.extraction_status === ExtractionStatus.SUCCESS) {
+          console.log('[UploadPage] Extraction already completed - finishing animation and fetching invoice');
+          // Backend has responded, finish the animation
+          this.uploadProgressService.finishProgress();
 
-              // Check if extraction was successful
-              if (finalMetadata.extraction_status === ExtractionStatus.FAILED) {
-                this.uploadProgressService.setError(finalMetadata.error_message || 'Extraction failed');
-                throw new Error(finalMetadata.error_message || 'Extraction failed');
-              }
-
-              // Fetch invoice data after successful extraction
+          // Wait for animation to complete, then fetch invoice
+          return this.uploadProgressService.progress$.pipe(
+            filter(progress => progress?.phase === UploadPhase.COMPLETE),
+            take(1),
+            switchMap(() => {
+              console.log('[UploadPage] Animation complete, fetching invoice:', invoiceKey);
               return this.invoiceService.getInvoiceByKey(invoiceKey);
             })
           );
+        } else if (extractionResponse.extraction_status === ExtractionStatus.FAILED) {
+          console.log('[UploadPage] Extraction already failed');
+          // If extraction failed, set error state
+          this.uploadProgressService.setError('Extraction failed');
+          throw new Error('Extraction failed');
         }
 
-        // If already SUCCESS, wait for simulated progress to complete, then fetch invoice
+        console.log('[UploadPage] Extraction in progress, waiting for WebSocket COMPLETE event...');
+
+        // Subscribe to WebSocket for real-time progress updates (only for PROCESSING status)
+        if (extractionKey) {
+          console.log('[UploadPage] Starting WebSocket subscription for key:', extractionKey);
+          this.uploadProgressService.startWebSocketProgress(extractionKey);
+        }
+
+        // Wait for progress to complete via WebSocket events
         return this.uploadProgressService.progress$.pipe(
-          // Skip the first emission (which is the current/stale state from BehaviorSubject)
-          skip(1),
-          // Now wait for COMPLETE phase from the fresh simulation
           filter(progress => progress?.phase === UploadPhase.COMPLETE),
           take(1),
-          switchMap(() => this.invoiceService.getInvoiceByKey(invoiceKey))
+          switchMap(() => {
+            console.log('[UploadPage] Progress complete, fetching invoice:', invoiceKey);
+            return this.invoiceService.getInvoiceByKey(invoiceKey);
+          })
         );
       })
     ).subscribe({
       next: (invoice) => {
+        console.log('[UploadPage] Invoice fetched successfully:', invoice);
         this.isExtracting = false;
         this.extractedInvoice = invoice;
         this.cdr.detectChanges();
         this.notificationService.success('Invoice extracted successfully!');
       },
       error: (error) => {
+        console.error('[UploadPage] Extraction error:', error);
         this.isExtracting = false;
         this.uploadProgressService.setError(error.userMessage || 'Extraction failed');
         this.cdr.detectChanges();
