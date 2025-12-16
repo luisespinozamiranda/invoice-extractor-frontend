@@ -29,9 +29,9 @@ export const PHASE_MESSAGES: Record<UploadPhase, string> = {
 
 export const PHASE_DURATIONS: Record<UploadPhase, number> = {
   [UploadPhase.IDLE]: 0,
-  [UploadPhase.UPLOADING]: 3,          // 3 seconds
-  [UploadPhase.OCR_PROCESSING]: 22,    // 22 seconds
-  [UploadPhase.LLM_PROCESSING]: 3,     // 3 seconds
+  [UploadPhase.UPLOADING]: 1,          // 1 second
+  [UploadPhase.OCR_PROCESSING]: 2,     // 2 seconds
+  [UploadPhase.LLM_PROCESSING]: 1,     // 1 second
   [UploadPhase.SAVING]: 1,             // 1 second
   [UploadPhase.COMPLETE]: 0,
   [UploadPhase.ERROR]: 0

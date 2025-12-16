@@ -11,7 +11,7 @@ import { NotificationService } from '../../../../core/services/notification/noti
 import { UploadProgressService } from '../../../../core/services/state/upload-progress.service';
 import { ExtractionResponse, Invoice, ExtractionStatus } from '../../../../core/models';
 import { UploadPhase } from '../../../../core/models/upload-progress.model';
-import { switchMap, filter, take } from 'rxjs';
+import { switchMap, filter, take, skip } from 'rxjs';
 
 @Component({
   selector: 'app-upload-page',
@@ -37,6 +37,10 @@ export class UploadPage {
   extractionMetadata: ExtractionResponse | null = null;
   extractedInvoice: Invoice | null = null;
 
+  constructor() {
+    // Upload page component initialized
+  }
+
   onFileSelected(file: File): void {
     this.isExtracting = true;
     this.extractionMetadata = null;
@@ -44,7 +48,6 @@ export class UploadPage {
 
     this.extractionService.extractInvoice(file).pipe(
       switchMap((extractionResponse) => {
-        console.log('Extraction Response:', extractionResponse);
         // Save extraction metadata
         this.extractionMetadata = extractionResponse;
 
@@ -53,33 +56,27 @@ export class UploadPage {
 
         // If extraction is still PROCESSING, use WebSocket for real-time updates
         if (extractionResponse.extraction_status === ExtractionStatus.PROCESSING && extractionKey) {
-          console.log('Extraction is PROCESSING, using WebSocket for real-time progress:', extractionKey);
           this.uploadProgressService.startWebSocketProgress(extractionKey);
         } else if (extractionResponse.extraction_status === ExtractionStatus.COMPLETED ||
                    extractionResponse.extraction_status === ExtractionStatus.SUCCESS) {
-          // If extraction already COMPLETED, show simulated progress for better UX
-          // The extraction.service already started the simulation when upload completed
-          console.log('Extraction already completed successfully, showing simulated progress');
-          // Don't call complete() here - let the simulation in extraction.service finish
+          // If extraction already COMPLETED, restart simulated progress for better UX
+          this.uploadProgressService.reset();
+          this.uploadProgressService.simulateProgress();
         } else if (extractionResponse.extraction_status === ExtractionStatus.FAILED) {
           // If extraction failed, set error state
-          console.log('Extraction failed');
           this.uploadProgressService.setError('Extraction failed');
         }
 
         // Check if invoice_key exists
         const invoiceKey = extractionResponse.invoice_key || (extractionResponse as any).invoiceKey;
         if (!invoiceKey) {
-          console.error('No invoice_key found in response:', extractionResponse);
           throw new Error('Invoice key not found in extraction response');
         }
 
         // If status is PROCESSING, start polling for status updates
         if (extractionResponse.extraction_status === ExtractionStatus.PROCESSING) {
-          console.log('Extraction is still processing, starting polling...');
           return this.extractionService.pollExtractionStatus(invoiceKey).pipe(
             switchMap((finalMetadata) => {
-              console.log('Final extraction status:', finalMetadata.extraction_status);
               this.extractionMetadata = finalMetadata;
 
               // Check if extraction was successful
@@ -89,35 +86,29 @@ export class UploadPage {
               }
 
               // Fetch invoice data after successful extraction
-              console.log('Fetching invoice with key:', invoiceKey);
               return this.invoiceService.getInvoiceByKey(invoiceKey);
             })
           );
         }
 
         // If already SUCCESS, wait for simulated progress to complete, then fetch invoice
-        console.log('Waiting for progress animation to complete before fetching invoice...');
-
-        // Wait for progress to reach 100% (COMPLETE phase)
         return this.uploadProgressService.progress$.pipe(
+          // Skip the first emission (which is the current/stale state from BehaviorSubject)
+          skip(1),
+          // Now wait for COMPLETE phase from the fresh simulation
           filter(progress => progress?.phase === UploadPhase.COMPLETE),
           take(1),
-          switchMap(() => {
-            console.log('Progress animation complete, fetching invoice with key:', invoiceKey);
-            return this.invoiceService.getInvoiceByKey(invoiceKey);
-          })
+          switchMap(() => this.invoiceService.getInvoiceByKey(invoiceKey))
         );
       })
     ).subscribe({
       next: (invoice) => {
-        console.log('Invoice fetched successfully:', invoice);
         this.isExtracting = false;
         this.extractedInvoice = invoice;
         this.cdr.detectChanges();
         this.notificationService.success('Invoice extracted successfully!');
       },
       error: (error) => {
-        console.error('Error during extraction:', error);
         this.isExtracting = false;
         this.uploadProgressService.setError(error.userMessage || 'Extraction failed');
         this.cdr.detectChanges();

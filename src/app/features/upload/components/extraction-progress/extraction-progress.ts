@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatCardModule } from '@angular/material/card';
@@ -20,6 +20,7 @@ import { UploadProgress, UploadPhase } from '../../../../core/models/upload-prog
 })
 export class ExtractionProgress implements OnInit, OnDestroy {
   private uploadProgressService = inject(UploadProgressService);
+  private cdr = inject(ChangeDetectorRef);
   private destroy$ = new Subject<void>();
 
   progress: UploadProgress | null = null;
@@ -30,6 +31,7 @@ export class ExtractionProgress implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe(progress => {
         this.progress = progress;
+        this.cdr.detectChanges();
       });
   }
 
