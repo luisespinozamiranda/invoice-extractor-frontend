@@ -14,6 +14,11 @@ export const ERROR_MESSAGES: Record<string, string> = {
   'INV-013': 'Database error. Please try again later.',
   'INV-014': 'LLM extraction service is not available. Using fallback extraction method.',
   'INV-015': 'Extraction service temporarily unavailable. Please try again later.',
+  'INV-016': 'AI extraction service is temporarily unavailable. Using standard extraction.',
+  'INV-017': 'Failed to process invoice with AI. Using fallback extraction.',
+  'INV-018': 'Unable to parse AI extraction results. Using standard extraction.',
+  'INV-019': 'AI returned invalid invoice data. Using fallback extraction.',
+  'INV-020': 'OCR processing timed out. Please try with a smaller or clearer file.',
   'UNKNOWN': 'An unexpected error occurred. Please try again.'
 };
 

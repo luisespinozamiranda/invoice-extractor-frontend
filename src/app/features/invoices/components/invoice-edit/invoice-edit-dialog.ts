@@ -86,22 +86,6 @@ import { Invoice, InvoiceStatus } from '../../../../core/models/invoice.model';
             </mat-form-field>
           </div>
 
-          <div class="form-row">
-            <mat-form-field appearance="outline">
-              <mat-label>Issue Date</mat-label>
-              <input matInput [matDatepicker]="issueDatePicker" [(ngModel)]="invoice.issue_date" name="issue_date" required>
-              <mat-datepicker-toggle matIconSuffix [for]="issueDatePicker"></mat-datepicker-toggle>
-              <mat-datepicker #issueDatePicker></mat-datepicker>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>Due Date</mat-label>
-              <input matInput [matDatepicker]="dueDatePicker" [(ngModel)]="invoice.due_date" name="due_date" required>
-              <mat-datepicker-toggle matIconSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
-              <mat-datepicker #dueDatePicker></mat-datepicker>
-            </mat-form-field>
-          </div>
-
           <mat-form-field appearance="outline" class="full-width">
             <mat-label>Status</mat-label>
             <mat-select [(ngModel)]="invoice.status" name="status" required>
@@ -336,12 +320,7 @@ export class InvoiceEditDialog implements OnInit {
 
     this.invoiceService.getInvoiceByKey(key).subscribe({
       next: (invoice) => {
-        // Convert date strings to Date objects for datepicker
-        this.invoice = {
-          ...invoice,
-          issue_date: invoice.issue_date ? new Date(invoice.issue_date) as any : invoice.issue_date,
-          due_date: invoice.due_date ? new Date(invoice.due_date) as any : invoice.due_date
-        };
+        this.invoice = invoice;
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -359,19 +338,7 @@ export class InvoiceEditDialog implements OnInit {
 
     this.saving = true;
 
-    // Convert Date objects back to ISO strings for API
-    const issueDate = this.invoice.issue_date as any;
-    const dueDate = this.invoice.due_date as any;
-
-    const invoiceToSave = {
-      ...this.invoice,
-      issue_date: issueDate instanceof Date
-        ? issueDate.toISOString().split('T')[0]
-        : issueDate,
-      due_date: dueDate instanceof Date
-        ? dueDate.toISOString().split('T')[0]
-        : dueDate
-    };
+    const invoiceToSave = this.invoice;
 
     this.invoiceService.updateInvoice(this.data.invoiceKey, invoiceToSave).subscribe({
       next: (updatedInvoice) => {

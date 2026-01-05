@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Client, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 import { BehaviorSubject, Observable } from 'rxjs';
+import { environment } from '../../../../environments/environment';
 
 export interface ExtractionEvent {
   type: string;
@@ -28,7 +29,7 @@ export class WebSocketService {
       return;
     }
 
-    const apiUrl = 'http://localhost:8080/invoice-extractor-service';
+    const apiUrl = environment.apiUrl;
     console.log('[WebSocketService] Connecting to WebSocket at:', `${apiUrl}/ws-extraction`);
 
     this.stompClient = new Client({

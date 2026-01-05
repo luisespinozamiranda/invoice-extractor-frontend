@@ -20,11 +20,9 @@ export class InvoiceService {
         invoice_amount: raw.invoice_amount ?? raw.invoiceAmount,
         client_name: raw.client_name ?? raw.clientName,
         client_address: raw.client_address ?? raw.clientAddress,
-        issue_date: raw.issue_date ?? raw.issueDate,
-        due_date: raw.due_date ?? raw.dueDate,
         currency: raw.currency,
         status: raw.status,
-        notes: raw.notes,
+        original_file_name: raw.original_file_name ?? raw.originalFileName,
         created_at: raw.created_at ?? raw.createdAt,
         updated_at: raw.updated_at ?? raw.updatedAt,
         is_deleted: raw.is_deleted ?? raw.isDeleted

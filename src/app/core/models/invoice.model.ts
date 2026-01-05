@@ -4,11 +4,10 @@ export interface Invoice {
   invoice_amount: number;
   client_name: string;
   client_address: string;
-  issue_date: string;           // ISO 8601 format
-  due_date: string;              // ISO 8601 format
   currency: string;
   status: InvoiceStatus;
   notes?: string;
+  original_file_name?: string;
   created_at?: string;
   updated_at?: string;
   is_deleted?: boolean;

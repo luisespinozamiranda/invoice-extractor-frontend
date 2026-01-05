@@ -86,14 +86,6 @@ import { Invoice } from '../../../../core/models/invoice.model';
           <div class="detail-section">
             <h4>Dates</h4>
             <div class="detail-row">
-              <span class="label">Issue Date:</span>
-              <span class="value">{{ formatDate(invoice.issue_date) }}</span>
-            </div>
-            <div class="detail-row">
-              <span class="label">Due Date:</span>
-              <span class="value">{{ formatDate(invoice.due_date) }}</span>
-            </div>
-            <div class="detail-row">
               <span class="label">Created At:</span>
               <span class="value">{{ formatDate(invoice.created_at) }}</span>
             </div>
