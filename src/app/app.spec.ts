@@ -1,10 +1,20 @@
 import { TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { App } from './app';
+import { WebSocketService } from './core/services/websocket/websocket.service';
 
 describe('App', () => {
+  let mockWebSocketService: jasmine.SpyObj<WebSocketService>;
+
   beforeEach(async () => {
+    mockWebSocketService = jasmine.createSpyObj('WebSocketService', ['connect', 'disconnect']);
+
     await TestBed.configureTestingModule({
       imports: [App],
+      providers: [
+        provideRouter([]),
+        { provide: WebSocketService, useValue: mockWebSocketService }
+      ]
     }).compileComponents();
   });
 
@@ -18,6 +28,6 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, invoice-extractor-frontend');
+    expect(compiled.querySelector('h1')?.textContent).toContain('Invoice Extractor');
   });
 });
